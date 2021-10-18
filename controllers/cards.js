@@ -1,7 +1,13 @@
 const Card = require('../models/card');
 
 const getCards = (req, res) => {
-  // Здесь будет функционал возврата всех карточек
+  Card.find({})
+    .then((cards) => res.status(200).send(cards))
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.log(`Error: ${err}`);
+      res.status(500).send({ message: 'Error!' });
+    });
 };
 
 const createCard = (req, res) => {
@@ -18,7 +24,15 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  // Здесь будет функционал удаления карточки
+  Card.findByIdAndRemove(req.params.id)
+    .then((card) => {
+      res.status(200).send({ data: card, message: 'Card deleted' });
+    })
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.log(`Error: ${err}`);
+      res.status(500).send({ message: 'Error!' });
+    });
 };
 
 module.exports = { getCards, createCard, deleteCard };
