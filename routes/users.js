@@ -8,10 +8,10 @@ const {
   updateProfile,
 } = require('../controllers/users');
 
-router.get('/', getUsers);
-router.get('/:id', getUser);
-router.post('/', createUser);
-router.patch('/me/avatar', updateAvatar);
-router.patch('/me', updateProfile);
+router.get('/', getUsers); // возвращает всех пользователей
+router.get('/:userId', getUser); // возвращает пользователя по _id
+router.post('/', createUser); // создаёт пользователя
+router.patch('/me/avatar', updateAvatar); // обновляет аватар
+router.patch('/me', updateProfile); // обновляет профиль
 
 module.exports = router;

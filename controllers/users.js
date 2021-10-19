@@ -11,8 +11,8 @@ const getUsers = (req, res, next) => {
 
 // возвращает пользователя по _id
 const getUser = (req, res, next) => {
-  const { id } = req.params;
-  User.findById(id)
+  const { userId } = req.params;
+  User.findById(userId)
     .then((userData) => {
       if (userData) {
         res.status(200).send(userData);
