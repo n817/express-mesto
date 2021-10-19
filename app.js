@@ -21,7 +21,7 @@ app.use((req, res, next) => {
 });
 
 app.use(routes); // подключаем маршруты
-app.use(errorsHandler); // подключаем обработчик ошибок
+app.use(errorsHandler); // подключаем обработчик ошибок по умолчанию (код 500)
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

@@ -15,6 +15,12 @@ const createCard = (req, res, next) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(200).send(card))
     .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res
+          .status(400)
+          .send({ message: `При создании карточки переданы некорректные данные: ${err.message}` });
+        return;
+      }
       next(err);
     });
 };
@@ -24,7 +30,7 @@ const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => res
       .status(200)
-      .send({ data: card, message: 'Card deleted' }))
+      .send({ data: card, message: 'Карточка удалена' }))
     .catch((err) => {
       next(err);
     });
@@ -39,7 +45,7 @@ const putCardLike = (req, res, next) => {
   )
     .then((card) => res
       .status(200)
-      .send({ data: card, message: 'Card like added' }))
+      .send({ data: card, message: 'Лайк поставлен' }))
     .catch((err) => {
       next(err);
     });
@@ -54,7 +60,7 @@ const removeCardLike = (req, res, next) => {
   )
     .then((card) => res
       .status(200)
-      .send({ data: card, message: 'Card like removed' }))
+      .send({ data: card, message: 'Лайк убран' }))
     .catch((err) => {
       next(err);
     });
