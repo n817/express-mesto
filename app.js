@@ -1,8 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const routes = require('./routes');
+const errorsHandler = require('./errors/errorsHandler');
 
-const { PORT = 4000 } = process.env;
+const { PORT = 3000 } = process.env;
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
 });
 
 app.use(routes); // подключаем маршруты
+app.use(errorsHandler); // подключаем обработчик ошибок
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

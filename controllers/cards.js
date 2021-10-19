@@ -1,37 +1,34 @@
 const Card = require('../models/card');
 
-const getCards = (req, res) => {
+// возвращает все карточки
+const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
     .catch((err) => {
-      // eslint-disable-next-line no-console
-      console.log(`Error: ${err}`);
-      res.status(500).send({ message: 'Error!' });
+      next(err);
     });
 };
 
-const createCard = (req, res) => {
+// создаёт карточку
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
       res.status(200).send(card);
     })
     .catch((err) => {
-      // eslint-disable-next-line no-console
-      console.log(`Error: ${err}`);
-      res.status(500).send({ message: 'Error!' });
+      next(err);
     });
 };
 
-const deleteCard = (req, res) => {
+// удаляет карточку по идентификатору
+const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.id)
     .then((card) => {
       res.status(200).send({ data: card, message: 'Card deleted' });
     })
     .catch((err) => {
-      // eslint-disable-next-line no-console
-      console.log(`Error: ${err}`);
-      res.status(500).send({ message: 'Error!' });
+      next(err);
     });
 };
 
