@@ -16,11 +16,16 @@ const getUser = (req, res, next) => {
     .then((userData) => {
       if (userData) {
         res.status(200).send(userData);
-        return;
       }
       res.status(404).send({ message: 'Пользователь не найден' });
     })
     .catch((err) => {
+      if (err.name === 'CastError') {
+        res
+          .status(400)
+          .send({ message: 'Невалидный id пользователя' });
+        return;
+      }
       next(err);
     });
 };
@@ -43,7 +48,16 @@ const createUser = (req, res, next) => {
 // обновляет аватар
 const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true }, // then получит обновлённые данные + валидация данных
+  )
+    .orFail(() => {
+      const error = new Error('не найден пользователь по заданному id');
+      error.statusCode = 404;
+      throw error;
+    })
     .then((userData) => res.status(200).send(userData))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -59,7 +73,16 @@ const updateAvatar = (req, res, next) => {
 // обновляет профиль
 const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true }, // then получит обновлённые данные + валидация данных
+  )
+    .orFail(() => {
+      const error = new Error('не найден пользователь по заданному id');
+      error.statusCode = 404;
+      throw error;
+    })
     .then((userData) => res.status(200).send(userData))
     .catch((err) => {
       if (err.name === 'ValidationError') {

@@ -28,10 +28,21 @@ const createCard = (req, res, next) => {
 // удаляет карточку по идентификатору
 const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => {
+      const error = new Error('не найдена карточка по заданному id');
+      error.statusCode = 404;
+      throw error;
+    })
     .then((card) => res
       .status(200)
       .send({ data: card, message: 'Карточка удалена' }))
     .catch((err) => {
+      if (err.name === 'CastError') {
+        res
+          .status(400)
+          .send({ message: 'Невалидный id карточки' });
+        return;
+      }
       next(err);
     });
 };
@@ -43,10 +54,21 @@ const putCardLike = (req, res, next) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
+    .orFail(() => {
+      const error = new Error('Не найдена карточка по заданному id');
+      error.statusCode = 404;
+      throw error;
+    })
     .then((card) => res
       .status(200)
       .send({ data: card, message: 'Лайк поставлен' }))
     .catch((err) => {
+      if (err.name === 'CastError') {
+        res
+          .status(400)
+          .send({ message: 'Невалидный id карточки' });
+        return;
+      }
       next(err);
     });
 };
@@ -58,10 +80,21 @@ const removeCardLike = (req, res, next) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
+    .orFail(() => {
+      const error = new Error('не найдена карточка по заданному id');
+      error.statusCode = 404;
+      throw error;
+    })
     .then((card) => res
       .status(200)
       .send({ data: card, message: 'Лайк убран' }))
     .catch((err) => {
+      if (err.name === 'CastError') {
+        res
+          .status(400)
+          .send({ message: 'Невалидный id карточки' });
+        return;
+      }
       next(err);
     });
 };
