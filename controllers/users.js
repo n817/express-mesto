@@ -1,6 +1,23 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
+// проводит аутентификацию пользователя
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      // успешная аутентификация, пользователь в переменной user
+      res.send(user);
+    })
+    .catch((err) => {
+      // возвращаем ошибку аутентификации
+      res
+        .status(401)
+        .send({ message: err.message });
+    });
+};
+
 // возвращает всех пользователей
 const getUsers = (req, res, next) => {
   User.find({})
@@ -98,6 +115,7 @@ const updateProfile = (req, res, next) => {
 };
 
 module.exports = {
+  login,
   getUsers,
   getUser,
   createUser,
