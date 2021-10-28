@@ -1,6 +1,11 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { SALT_ROUND, JWT_SECRET } = require('../configs');
 const User = require('../models/user');
+const CastError = require('../errors/CastError');
+const ConflictError = require('../errors/ConflictError');
+const NotFoundError = require('../errors/NotFoundError');
+const ValidationError = require('../errors/ValidationError');
 
 // проводит аутентификацию пользователя
 const login = (req, res, next) => {
@@ -12,7 +17,7 @@ const login = (req, res, next) => {
       // создадим и вернем токен
       const token = jwt.sign(
         { _id: user._id },
-        'some-secret-key',
+        JWT_SECRET,
         { expiresIn: '7d' },
       );
       res
@@ -26,9 +31,7 @@ const login = (req, res, next) => {
 const getUsers = (req, res, next) => {
   User.find({})
     .then((usersData) => res.status(200).send(usersData))
-    .catch((err) => {
-      next(err);
-    });
+    .catch(next);
 };
 
 // возвращает пользователя по _id
@@ -39,19 +42,17 @@ const getUser = (req, res, next) => {
       if (userData) {
         res.status(200).send(userData);
       }
-      res.status(404).send({ message: 'Пользователь не найден' });
+      throw new NotFoundError('Пользователь не найден');
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res
-          .status(400)
-          .send({ message: 'Невалидный id пользователя' });
-        return;
+        next(new CastError('Невалидный id пользователя'));
       }
       next(err);
     });
 };
 
+// возвращает информацию о текущем пользователе
 const getMe = (req, res, next) => {
   const userId = req.user._id;
   User.findById(userId)
@@ -59,14 +60,11 @@ const getMe = (req, res, next) => {
       if (userData) {
         res.status(200).send(userData);
       }
-      res.status(404).send({ message: 'Пользователь не найден' });
+      throw new NotFoundError('Пользователь не найден');
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res
-          .status(400)
-          .send({ message: 'Невалидный id пользователя' });
-        return;
+        next(new NotFoundError('Пользователь не найден'));
       }
       next(err);
     });
@@ -74,15 +72,26 @@ const getMe = (req, res, next) => {
 
 // создаёт пользователя
 const createUser = (req, res, next) => {
-  bcrypt.hash(req.body.password, 10)
-    .then((hash) => User.create({ ...req.body, password: hash }))
-    .then((userData) => res.status(200).send(userData))
+  const { email, password } = req.body;
+  // проверяем, переданы ли логин и пароль
+  if (!email || !password) {
+    throw new CastError('При создании пользователя переданы некорректные данные');
+  }
+  // проверяем, существует ли уже пользователь с таким email
+  // если нет, то возвращаем хэш пароля
+  User.findOne({ email })
+    .then((user) => {
+      if (user) {
+        throw new ConflictError(`Такой email уже существует ${user._id}`);
+      }
+      return bcrypt.hash(password, SALT_ROUND);
+    })
+    // создаем пользователя
+    .then((hash) => User.create({ email, password: hash }))
+    .then((userData) => res.status(201).send(userData))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(400)
-          .send({ message: `При создании пользователя переданы некорректные данные: ${err.message}` });
-        return;
+        next(new ValidationError(`При создании пользователя переданы некорректные данные: ${err.message}`));
       }
       next(err);
     });
@@ -97,17 +106,12 @@ const updateAvatar = (req, res, next) => {
     { new: true, runValidators: true }, // then получит обновлённые данные + валидация данных
   )
     .orFail(() => {
-      const error = new Error('не найден пользователь по заданному id');
-      error.statusCode = 404;
-      throw error;
+      throw new NotFoundError('Пользователь не найден по заданному id');
     })
     .then((userData) => res.status(200).send(userData))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(400)
-          .send({ message: `При обновлении аватара переданы некорректные данные: ${err.message}` });
-        return;
+        next(new ValidationError(`При обновлении аватара переданы некорректные данные: ${err.message}`));
       }
       next(err);
     });
@@ -122,17 +126,12 @@ const updateProfile = (req, res, next) => {
     { new: true, runValidators: true }, // then получит обновлённые данные + валидация данных
   )
     .orFail(() => {
-      const error = new Error('не найден пользователь по заданному id');
-      error.statusCode = 404;
-      throw error;
+      throw new NotFoundError('Пользователь не найден по заданному id');
     })
     .then((userData) => res.status(200).send(userData))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(400)
-          .send({ message: `При обновлении профиля переданы некорректные данные: ${err.message}` });
-        return;
+        next(new ValidationError(`При обновлении профиля переданы некорректные данные: ${err.message}`));
       }
       next(err);
     });
