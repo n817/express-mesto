@@ -27,15 +27,25 @@ const createCard = (req, res, next) => {
 
 // удаляет карточку по идентификатору
 const deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(() => {
       const error = new Error('не найдена карточка по заданному id');
       error.statusCode = 404;
       throw error;
     })
-    .then((card) => res
-      .status(200)
-      .send({ data: card, message: 'Карточка удалена' }))
+    .then((card) => {
+      if (!card.owner.equals(req.user._id)) {
+        const error = new Error('запрещено удалять карточки других пользователей');
+        error.statusCode = 403;
+        throw error;
+      } else {
+        Card.findByIdAndRemove(req.params.cardId)
+          .then((data) => res
+            .status(200)
+            .send({ data, message: 'Карточка удалена' }))
+          .catch(next);
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res

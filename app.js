@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const routes = require('./routes');
-const errorsHandler = require('./errors/errorsHandler');
+const errorHandler = require('./errors/errorHandler');
 
 const { PORT = 3000 } = process.env;
 
@@ -13,15 +13,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 app.use(express.json()); // подключаем body-парсер
-
-// временное решение авторизации
-app.use((req, res, next) => {
-  req.user = { _id: '616c63f2bcc039b925bf9774' };
-  next();
-});
-
 app.use(routes); // подключаем маршруты
-app.use(errorsHandler); // подключаем обработчик ошибок по умолчанию (код 500)
+app.use(errorHandler); // подключаем обработчик ошибок по умолчанию (код 500)
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

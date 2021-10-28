@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 // проводит аутентификацию пользователя
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -15,14 +15,11 @@ const login = (req, res) => {
         'some-secret-key',
         { expiresIn: '7d' },
       );
-      res.send({ token });
-    })
-    .catch((err) => {
-      // возвращаем ошибку аутентификации
       res
-        .status(401)
-        .send({ message: err.message });
-    });
+        .status(200)
+        .send({ token, id: user._id });
+    })
+    .catch(next); // эквивалентна catch(err => next(err))
 };
 
 // возвращает всех пользователей
@@ -37,6 +34,26 @@ const getUsers = (req, res, next) => {
 // возвращает пользователя по _id
 const getUser = (req, res, next) => {
   const { userId } = req.params;
+  User.findById(userId)
+    .then((userData) => {
+      if (userData) {
+        res.status(200).send(userData);
+      }
+      res.status(404).send({ message: 'Пользователь не найден' });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res
+          .status(400)
+          .send({ message: 'Невалидный id пользователя' });
+        return;
+      }
+      next(err);
+    });
+};
+
+const getMe = (req, res, next) => {
+  const userId = req.user._id;
   User.findById(userId)
     .then((userData) => {
       if (userData) {
@@ -125,6 +142,7 @@ module.exports = {
   login,
   getUsers,
   getUser,
+  getMe,
   createUser,
   updateAvatar,
   updateProfile,
