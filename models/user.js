@@ -45,13 +45,13 @@ userSchema.statics.findUserByCredentials = function (email, password) {
     .then((user) => {
       if (!user) {
         // инструкция throw генерирует исключение и обработка кода переходит в следующий блок catch
-        throw new AuthError('Неправильные почта или пароль');
+        throw new AuthError('неправильная почта и(или) пароль');
       }
       // нашёлся — сравниваем хеши пароля
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            throw new AuthError('Неправильные почта или пароль');
+            throw new AuthError('неправильная почта и(или) пароль');
           }
           // хеши совпали — возвращаем пользователя
           return user;
