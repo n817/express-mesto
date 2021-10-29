@@ -5,6 +5,7 @@ const auth = require('../middlewares/auth');
 const usersRouter = require('./users');
 const cardsRouter = require('./cards');
 const { urlRegEx } = require('../configs');
+const NotFoundError = require('../errors/NotFoundError');
 
 // проводит авторизацию пользователя
 router.post('/signin', celebrate({
@@ -33,8 +34,8 @@ router.use('/cards', cardsRouter); // localhost:PORT/cards + cardsRouter
 router.use(errors());// обработчик ошибок celebrate
 
 // обработка запросов на несуществующий роут
-router.use((req, res) => res
-  .status(404)
-  .send({ message: 'Запрошен несуществующий роут' }));
+router.use('*', () => {
+  throw new NotFoundError('запрошен несуществующий роут');
+});
 
 module.exports = router;

@@ -82,13 +82,13 @@ const createUser = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (user) {
-        throw new ConflictError(`Такой email уже существует ${user._id}`);
+        throw new ConflictError(`Такой email уже существует у пользователя id ${user._id}`);
       }
       return bcrypt.hash(password, SALT_ROUND);
     })
     // создаем пользователя
     .then((hash) => User.create({ email, password: hash }))
-    .then((userData) => res.status(201).send(userData))
+    .then((userData) => res.status(201).send({ message: `пользователь id ${userData._id} успешно создан` }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError(`При создании пользователя переданы некорректные данные: ${err.message}`));

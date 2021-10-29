@@ -1,5 +1,5 @@
 const SALT_ROUND = 10;
-const JWT_SECRET = 'secret-key';
+const { JWT_SECRET = 'dev-key' } = process.env;
 
 // eslint-disable-next-line no-useless-escape
 const urlRegEx = /^https?:\/\/(www.)?([\da-z\.-]+)\.([a-z\.]{2,6})([\da-z\-\.\_\~\:\/\?\#\[\]\@\!\$\&\'\(\)\*\+\,\;\=]*)*\#?/;
